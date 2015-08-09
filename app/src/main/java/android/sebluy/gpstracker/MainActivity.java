@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity
@@ -36,13 +37,18 @@ public class MainActivity
         implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     private String mStatus;
+
+    private ArrayList<Location> mPoints;
+
     private TextView mStatusView;
     private TextView mLatitudeView;
     private TextView mLongitudeView;
     private TextView mTimeView;
     private TextView mPointCountView;
+
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+
     private boolean mIsTracking = false;
 
     private void handleSendClick() {
@@ -85,6 +91,8 @@ public class MainActivity
         mLatitudeView.setText(String.valueOf(location.getLatitude()));
         mLongitudeView.setText(String.valueOf(location.getLongitude()));
         mTimeView.setText(DateFormat.getTimeInstance().format(new Date()));
+        mPoints.add(location);
+        mPointCountView.setText(String.valueOf(mPoints.size()));
     }
 
     private class SendPathTask extends AsyncTask<Void, Void, Void> {
@@ -104,10 +112,10 @@ public class MainActivity
             mStatusView.setText(mStatus);
         }
 
-        private JSONObject latLngToJSON(double latitude, double longitude) throws Exception {
+        private JSONObject locationToJSON(Location location) throws Exception {
             JSONObject latLng = new JSONObject();
-            latLng.put("latitude", latitude);
-            latLng.put("longitude", longitude);
+            latLng.put("latitude", location.getLatitude());
+            latLng.put("longitude", location.getLongitude());
             return latLng;
         }
 
@@ -124,8 +132,9 @@ public class MainActivity
             OutputStream os = null;
 
             JSONArray path = new JSONArray();
-            path.put(latLngToJSON(43.2, -70.0)) ;
-            path.put(latLngToJSON(43.3, -70.0)) ;
+            for (int i = 0 ; i < mPoints.size() ; i++) {
+                path.put(locationToJSON(mPoints.get(i)));
+            }
 
             JSONArray apiCall = makeJSONAPICall("add-path", path);
             JSONArray apiCallList = new JSONArray();
@@ -189,6 +198,10 @@ public class MainActivity
         Button sendButton = (Button)findViewById(R.id.send_button);
         sendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
+                if (mIsTracking) {
+                    stopLocationUpdates();
+                    mIsTracking = false;
+                }
                 handleSendClick();
             }
         });
@@ -210,7 +223,6 @@ public class MainActivity
                     stopLocationUpdates();
                     mIsTracking = false;
                 }
-                
             }
         });
         mLatitudeView = (TextView)findViewById(R.id.latitude);
@@ -221,10 +233,15 @@ public class MainActivity
     }
 
     private void stopLocationUpdates() {
+        mStatus = "Tracking stopped";
+        updateStatusView();
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
     private void startLocationUpdates() {
+        mStatus = "Tracking";
+        mPoints = new ArrayList<>();
+        updateStatusView();
         LocationServices.FusedLocationApi.
                 requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
