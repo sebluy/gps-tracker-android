@@ -1,25 +1,20 @@
 package android.sebluy.gpstracker;
 
+import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationRequest;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,16 +24,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
-public class MainActivity
-        extends Activity
-        implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
-
-    private String mStatus;
-
-    private ArrayList<Location> mPoints;
+public class MainActivity extends Activity implements GPSListener {
 
     private TextView mStatusView;
     private TextView mLatitudeView;
@@ -46,44 +34,17 @@ public class MainActivity
     private TextView mTimeView;
     private TextView mPointCountView;
 
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
-
-    private boolean mIsTracking = false;
+    private GPS mGPS;
 
     private void handleSendClick() {
         ConnectivityManager c = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo n = c.getActiveNetworkInfo();
         if (n != null && n.isConnected()) {
-            mStatus = "Sending";
-            updateStatusView();
+//            mStatus = "Sending";
             new SendPathTask().execute();
         } else {
-            mStatus = "Network connection unavailable";
-            updateStatusView();
+//            mStatus = "Network connection unavailable";
         }
-    }
-
-    private void updateStatusView() {
-        mStatusView.setText(mStatus);
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        mStatus = "Google API Connected";
-        updateStatusView();
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        mStatus = "Google API Disconnected";
-        updateStatusView();
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        mStatus = "Google API Connection Failed";
-        updateStatusView();
     }
 
     @Override
@@ -91,8 +52,12 @@ public class MainActivity
         mLatitudeView.setText(String.valueOf(location.getLatitude()));
         mLongitudeView.setText(String.valueOf(location.getLongitude()));
         mTimeView.setText(DateFormat.getTimeInstance().format(new Date()));
-        mPoints.add(location);
-        mPointCountView.setText(String.valueOf(mPoints.size()));
+        mPointCountView.setText(String.valueOf(mGPS.getPoints().size()));
+    }
+
+    @Override
+    public void onStatusChanged(String status) {
+        mStatusView.setText(status);
     }
 
     private class SendPathTask extends AsyncTask<Void, Void, Void> {
@@ -102,14 +67,14 @@ public class MainActivity
             try {
                 sendPath();
             } catch (Exception e) {
-                mStatus = "Error" + e.getMessage();
+//                mStatus = "Error" + e.getMessage();
             }
             return null;
         }
 
         @Override
         protected void onPostExecute(Void v) {
-            mStatusView.setText(mStatus);
+//            mStatusView.setText(mStatus);
         }
 
         private JSONObject locationToJSON(Location location) throws Exception {
@@ -132,8 +97,8 @@ public class MainActivity
             OutputStream os = null;
 
             JSONArray path = new JSONArray();
-            for (int i = 0 ; i < mPoints.size() ; i++) {
-                path.put(locationToJSON(mPoints.get(i)));
+            for (int i = 0 ; i < mGPS.getPoints().size() ; i++) {
+                path.put(locationToJSON(mGPS.getPoints().get(i)));
             }
 
             JSONArray apiCall = makeJSONAPICall("add-path", path);
@@ -157,9 +122,9 @@ public class MainActivity
 
                 int response = c.getResponseCode();
                 if (response == 200) {
-                    mStatus = "Success" ;
+//                    mStatus = "Success" ;
                 } else {
-                    mStatus = "Failure" + response ;
+//                    mStatus = "Failure" + response ;
                 }
             } finally {
                 if (os != null) {
@@ -172,36 +137,24 @@ public class MainActivity
         }
     }
 
-    private void buildGoogleApiClient() {
-        mStatus = "Connecting";
-        updateStatusView();
-        mGoogleApiClient = new GoogleApiClient.Builder(this).
-                addConnectionCallbacks(this).
-                addOnConnectionFailedListener(this).
-                addApi(LocationServices.API).
-                build();
-        createLocationRequest();
-    }
-
-    private void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
+
         mStatusView = (TextView)findViewById(R.id.status_view);
+        mLatitudeView = (TextView)findViewById(R.id.latitude);
+        mLongitudeView = (TextView)findViewById(R.id.longitude);
+        mTimeView = (TextView)findViewById(R.id.time);
+        mPointCountView = (TextView)findViewById(R.id.point_count);
+
+        mGPS = new GPS(getApplicationContext(), this);
+
         Button sendButton = (Button)findViewById(R.id.send_button);
         sendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                if (mIsTracking) {
-                    stopLocationUpdates();
-                    mIsTracking = false;
-                }
+                mGPS.stop();
                 handleSendClick();
             }
         });
@@ -209,53 +162,28 @@ public class MainActivity
         startTrackingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!mIsTracking && mGoogleApiClient.isConnected()) {
-                    startLocationUpdates();
-                    mIsTracking = true;
-                }
+                mGPS.start();
             }
         });
         Button stopTrackingButton = (Button)findViewById(R.id.stop_tracking_button);
         stopTrackingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mIsTracking) {
-                    stopLocationUpdates();
-                    mIsTracking = false;
-                }
+                mGPS.stop();
             }
         });
-        mLatitudeView = (TextView)findViewById(R.id.latitude);
-        mLongitudeView = (TextView)findViewById(R.id.longitude);
-        mTimeView = (TextView)findViewById(R.id.time);
-        mPointCountView = (TextView)findViewById(R.id.point_count);
-        buildGoogleApiClient();
-    }
-
-    private void stopLocationUpdates() {
-        mStatus = "Tracking stopped";
-        updateStatusView();
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-    }
-
-    private void startLocationUpdates() {
-        mStatus = "Tracking";
-        mPoints = new ArrayList<>();
-        updateStatusView();
-        LocationServices.FusedLocationApi.
-                requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
+        Button clearPathButton = (Button)findViewById(R.id.clear_path_button);
+        clearPathButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mGPS.clear();
+            }
+        });
     }
 
     @Override
     public void onStop() {
-        stopLocationUpdates();
-        mGoogleApiClient.disconnect();
+        mGPS.stop();
         super.onStop();
     }
 

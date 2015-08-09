@@ -53,6 +53,12 @@
         android:layout_height="wrap_content"/>
 
     <Button
+        android:text="Clear Path"
+        android:id="@+id/clear_path_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
         android:text="Send Request"
         android:id="@+id/send_button"
         android:layout_width="wrap_content"
