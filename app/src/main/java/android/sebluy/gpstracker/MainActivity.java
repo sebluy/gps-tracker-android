@@ -18,15 +18,30 @@ public class MainActivity extends Activity implements GPSListener {
     private TextView mStatusView;
     private TextView mLatitudeView;
     private TextView mLongitudeView;
+    private TextView mSpeedView;
+    private TextView mDistanceView;
     private TextView mTimeView;
     private TextView mPointCountView;
 
     private GPS mGPS;
 
+    private float mpsToMph(float mps) {
+        return mps * 2.23694f;
+    }
+
+    private float distanceTo(Location location) {
+        float[] results = new float[1];
+        Location.distanceBetween(location.getLatitude(), location.getLongitude(),
+                43.694011, -70.588709, results);
+        return results[0];
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         mLatitudeView.setText(String.valueOf(location.getLatitude()));
         mLongitudeView.setText(String.valueOf(location.getLongitude()));
+        mSpeedView.setText(String.valueOf(mpsToMph(location.getSpeed()))) ;
+        mDistanceView.setText(String.valueOf(distanceTo(location)));
         mTimeView.setText(DateFormat.getTimeInstance().format(new Date()));
         mPointCountView.setText(String.valueOf(mGPS.getPoints().size()));
     }
@@ -45,6 +60,8 @@ public class MainActivity extends Activity implements GPSListener {
         mStatusView = (TextView)findViewById(R.id.status_view);
         mLatitudeView = (TextView)findViewById(R.id.latitude);
         mLongitudeView = (TextView)findViewById(R.id.longitude);
+        mSpeedView = (TextView)findViewById(R.id.speed);
+        mDistanceView = (TextView)findViewById(R.id.distance);
         mTimeView = (TextView)findViewById(R.id.time);
         mPointCountView = (TextView)findViewById(R.id.point_count);
 
