@@ -17,7 +17,6 @@ import java.util.ArrayList;
 public class GPS
         implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
-    private String mStatus;
     private ArrayList<Location> mPoints;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
