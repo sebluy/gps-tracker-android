@@ -44,16 +44,22 @@ public class Remote {
         mListener.onStatusChanged("Remote: " + status);
     }
 
-    private class SendPathTask extends AsyncTask<ArrayList<Location>, Void, Void> {
+    private class SendPathTask extends AsyncTask<ArrayList<Location>, Void, String> {
 
         @Override
-        protected Void doInBackground(ArrayList<Location>... params) {
+        protected String doInBackground(ArrayList<Location>... params) {
+            String status;
             try {
-                HTTPPostPath(params[0]);
+                status = HTTPPostPath(params[0]);
             } catch (Exception e) {
-                updateStatus("Error (" + e.getMessage() + ")");
+                status = "Error (" + e.getMessage() + ")";
             }
-            return null;
+            return status;
+        }
+
+        @Override
+        protected void onPostExecute(String status) {
+            updateStatus(status);
         }
 
         private JSONObject locationToJSON(Location location) throws Exception {
@@ -70,7 +76,7 @@ public class Remote {
             return apiCall;
         }
 
-        private void HTTPPostPath(ArrayList<Location> path) throws Exception {
+        private String HTTPPostPath(ArrayList<Location> path) throws Exception {
             URL url = null;
             HttpURLConnection c = null;
             OutputStream os = null;
@@ -101,9 +107,9 @@ public class Remote {
 
                 int response = c.getResponseCode();
                 if (response == 200) {
-                    updateStatus("Success");
+                    return "Success";
                 } else {
-                    updateStatus("Failure");
+                    return "Failure";
                 }
             } finally {
                 if (os != null) {
