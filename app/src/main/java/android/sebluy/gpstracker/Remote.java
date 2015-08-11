@@ -6,30 +6,25 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 
-import com.google.android.gms.location.LocationListener;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
 public class Remote {
 
-    private Context mContext;
     private StatusListener mListener;
 
-    public Remote(Context context, StatusListener listener) {
-        mContext = context;
+    public Remote(StatusListener listener) {
         mListener = listener;
     }
 
     public void sendPath(ArrayList<Location> path) {
-        ConnectivityManager c = (ConnectivityManager)mContext.
+        ConnectivityManager c = (ConnectivityManager)Application.getContext().
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo n = c.getActiveNetworkInfo();
         if (n != null && n.isConnected()) {

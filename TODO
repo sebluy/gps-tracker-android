@@ -1,3 +1,12 @@
+Current:
 Make UI more user friendly (fragments)
+
+Future:
+Separate JSON generation from HTTP Post
 Run gps collection in background (while device is asleep)
+Add proper onstop/start state restoration techniques (support rotation)
+Add multiple paths
+Add named paths
+Add path saving to disk
+Add waypoints
 

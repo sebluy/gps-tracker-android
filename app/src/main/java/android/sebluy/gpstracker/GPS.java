@@ -21,10 +21,8 @@ public class GPS
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private GPSListener mListener;
-    private Context mContext;
 
-    public GPS(Context context, GPSListener listener) {
-        mContext = context;
+    public GPS(GPSListener listener) {
         mListener = listener;
         mPoints = new ArrayList<>();
         mGoogleApiClient = makeGoogleApiClient();
@@ -86,7 +84,7 @@ public class GPS
     }
 
     private GoogleApiClient makeGoogleApiClient() {
-        return new GoogleApiClient.Builder(mContext).
+        return new GoogleApiClient.Builder(Application.getContext()).
                 addConnectionCallbacks(this).
                 addOnConnectionFailedListener(this).
                 addApi(LocationServices.API).
