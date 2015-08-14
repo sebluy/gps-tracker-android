@@ -1,0 +1,52 @@
+<TableLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <TableRow>
+
+        <TextView
+            style="@style/TableText.Header"
+            android:text="Current Speed"/>
+
+        <TextView
+            style="@style/TableText.Value"
+            android:id="@+id/current_speed"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/TableText.Header"
+            android:text="Average Speed"/>
+
+        <TextView
+            style="@style/TableText.Value"
+            android:id="@+id/average_speed"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/TableText.Header"
+            android:text="Total Distance"/>
+
+        <TextView
+            style="@style/TableText.Value"
+            android:id="@+id/total_distance"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/TableText.Header"
+            android:text="Duration"/>
+
+        <TextView
+            style="@style/TableText.Value"
+            android:id="@+id/duration"/>
+    </TableRow>
+
+</TableLayout>

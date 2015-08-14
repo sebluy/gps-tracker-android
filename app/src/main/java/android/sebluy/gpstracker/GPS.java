@@ -1,37 +1,26 @@
 package android.sebluy.gpstracker;
 
-import android.content.Context;
-import android.location.Location;
 import android.os.Bundle;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-import java.util.ArrayList;
-
 public class GPS
-        implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
+        implements ConnectionCallbacks, OnConnectionFailedListener {
 
-    private ArrayList<Location> mPoints;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private GPSListener mListener;
 
     public GPS(GPSListener listener) {
         mListener = listener;
-        mPoints = new ArrayList<>();
         mGoogleApiClient = makeGoogleApiClient();
         mLocationRequest = makeLocationRequest();
         updateStatus("Idling");
-    }
-
-    public boolean isTracking() {
-        return mGoogleApiClient.isConnected();
     }
 
     public void start() {
@@ -46,14 +35,6 @@ public class GPS
             updateStatus("Disconnecting");
             mGoogleApiClient.disconnect();
         }
-    }
-
-    public void clear() {
-        mPoints.clear();
-    }
-
-    public ArrayList<Location> getPoints() {
-        return mPoints;
     }
 
     private void updateStatus(String status) {
@@ -77,12 +58,6 @@ public class GPS
         updateStatus("Google API Connection Failed");
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        mPoints.add(location);
-        mListener.onLocationChanged(location);
-    }
-
     private GoogleApiClient makeGoogleApiClient() {
         return new GoogleApiClient.Builder(Application.getContext()).
                 addConnectionCallbacks(this).
@@ -99,12 +74,12 @@ public class GPS
     }
 
     private void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, mListener);
     }
 
     private void startLocationUpdates() {
         LocationServices.FusedLocationApi.
-                requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+                requestLocationUpdates(mGoogleApiClient, mLocationRequest, mListener);
     }
 
 }

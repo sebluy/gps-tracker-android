@@ -1,24 +1,55 @@
 package android.sebluy.gpstracker;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements StatusListener {
+
+    private TextView mCurrentPathView;
+
+    public void updateCurrentPathView() {
+        Path path = PathHolder.getPath();
+        if (path == null) {
+            mCurrentPathView.setText("No existing path");
+        } else if (path.isEmpty()) {
+            mCurrentPathView.setText("Path is empty");
+        } else {
+            mCurrentPathView.setText("Path ready for upload");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateCurrentPathView();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mCurrentPathView = (TextView)findViewById(R.id.current_path);
         findViewById(R.id.create_new_path_button).
                 setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        startActivity(new Intent(MainActivity.this, TrackActivity.class));
-
+                        PathHolder.setPath(new Path());
+                        new TrackingDialogFragment().show(getFragmentManager(), "tracking");
+                    }
+                });
+        findViewById(R.id.upload_path_button).
+                setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        JSONAPI.addPath(PathHolder.getPath(), MainActivity.this);
                     }
                 });
     }
 
+    @Override
+    public void onStatusChanged(String status) {
+        mCurrentPathView.setText(status);
+    }
 }

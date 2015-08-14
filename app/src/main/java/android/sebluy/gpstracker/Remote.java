@@ -1,19 +1,14 @@
 package android.sebluy.gpstracker;
 
 import android.content.Context;
-import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 
 public class Remote {
 
@@ -23,13 +18,13 @@ public class Remote {
         mListener = listener;
     }
 
-    public void sendPath(ArrayList<Location> path) {
+    public void postAPI(String body) {
         ConnectivityManager c = (ConnectivityManager)Application.getContext().
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo n = c.getActiveNetworkInfo();
         if (n != null && n.isConnected()) {
             updateStatus("Sending");
-            new SendPathTask().execute(path);
+            new SendPathTask().execute(body);
         } else {
             updateStatus("Network connection unavailable");
         }
@@ -39,13 +34,13 @@ public class Remote {
         mListener.onStatusChanged("Remote: " + status);
     }
 
-    private class SendPathTask extends AsyncTask<ArrayList<Location>, Void, String> {
+    private class SendPathTask extends AsyncTask<String, Void, String> {
 
         @Override
-        protected String doInBackground(ArrayList<Location>... params) {
+        protected String doInBackground(String... params) {
             String status;
             try {
-                status = HTTPPostPath(params[0]);
+                status = HTTPPost(params[0]);
             } catch (Exception e) {
                 status = "Error (" + e.getMessage() + ")";
             }
@@ -57,35 +52,12 @@ public class Remote {
             updateStatus(status);
         }
 
-        private JSONObject locationToJSON(Location location) throws Exception {
-            JSONObject latLng = new JSONObject();
-            latLng.put("latitude", location.getLatitude());
-            latLng.put("longitude", location.getLongitude());
-            return latLng;
-        }
-
-        private JSONArray makeJSONAPICall(String action, JSONArray args) {
-            JSONArray apiCall = new JSONArray();
-            apiCall.put(action);
-            apiCall.put(args);
-            return apiCall;
-        }
-
-        private String HTTPPostPath(ArrayList<Location> path) throws Exception {
+        private String HTTPPost(String body) throws Exception {
             URL url = null;
             HttpURLConnection c = null;
             OutputStream os = null;
 
-            JSONArray JSONPath = new JSONArray();
-            for (int i = 0 ; i < path.size() ; i++) {
-                JSONPath.put(locationToJSON(path.get(i)));
-            }
-
-            JSONArray apiCall = makeJSONAPICall("add-path", JSONPath);
-            JSONArray apiCallList = new JSONArray();
-            apiCallList.put(apiCall);
-
-            byte[] bytes = apiCallList.toString().getBytes();
+            byte[] bytes = body.getBytes();
             try {
                 url = new URL("https://fierce-dawn-3931.herokuapp.com/api");
                 c = (HttpURLConnection) url.openConnection();
