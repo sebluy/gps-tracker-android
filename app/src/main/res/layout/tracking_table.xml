@@ -8,6 +8,17 @@
 
         <TextView
             style="@style/TableText.Header"
+            android:text="Provider"/>
+
+        <TextView
+            style="@style/TableText.Value"
+            android:id="@+id/provider"/>
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/TableText.Header"
             android:text="Current Speed"/>
 
         <TextView

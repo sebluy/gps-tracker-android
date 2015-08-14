@@ -21,22 +21,20 @@ public class TrackingDialogFragment extends DialogFragment implements GPSListene
     private TextView mAverageSpeedView;
     private TextView mDistanceView;
     private TextView mDurationView;
-
-    private float mpsToMph(float mps) {
-        return mps * 2.23694f;
-    }
+    private TextView mProvider;
 
     @Override
     public void onLocationChanged(Location location) {
         mPath.addPoint(location);
         if (location.hasSpeed()) {
-            mCurrentSpeedView.setText(String.valueOf(location.getSpeed()));
+            mCurrentSpeedView.setText(Util.speedString(location.getSpeed()));
         } else {
             mCurrentSpeedView.setText("Unavailable");
         }
-        mAverageSpeedView.setText(String.valueOf(mPath.getAverageSpeed()));
-        mDistanceView.setText(String.valueOf(mPath.getTotalDistance()));
-        mDurationView.setText(String.valueOf(mPath.getDuration()));
+        mProvider.setText(location.getProvider());
+        mAverageSpeedView.setText(Util.speedString(mPath.getAverageSpeed()));
+        mDistanceView.setText(Util.distanceString(mPath.getTotalDistance()));
+        mDurationView.setText(Util.timeString(mPath.getDuration()));
     }
 
     @Override
@@ -50,6 +48,7 @@ public class TrackingDialogFragment extends DialogFragment implements GPSListene
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.tracking_table, null);
 
+        mProvider = (TextView)view.findViewById(R.id.provider);
         mCurrentSpeedView = (TextView)view.findViewById(R.id.current_speed);
         mAverageSpeedView = (TextView)view.findViewById(R.id.average_speed);
         mDistanceView = (TextView)view.findViewById(R.id.total_distance);

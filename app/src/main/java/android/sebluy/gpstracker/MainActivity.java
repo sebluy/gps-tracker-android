@@ -16,7 +16,7 @@ public class MainActivity extends Activity implements StatusListener {
         } else if (path.isEmpty()) {
             mCurrentPathView.setText("Path is empty");
         } else {
-            mCurrentPathView.setText("Path ready for upload");
+            mCurrentPathView.setText(path.toString());
         }
     }
 

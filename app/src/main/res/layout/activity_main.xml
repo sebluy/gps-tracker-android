@@ -17,8 +17,7 @@
         android:id="@+id/current_path"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="50dp"/>
+        android:layout_height="wrap_content"/>
 
     <Button
         android:text="Upload Path"

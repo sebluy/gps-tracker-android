@@ -1,6 +1,7 @@
 package android.sebluy.gpstracker;
 
 import android.location.Location;
+import android.text.format.DateFormat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -51,6 +52,13 @@ public class Path {
         return mTotalDistance;
     }
 
+    public String toString() {
+        return String.format("Start: %s\nDistance: %s\nSpeed: %s\n",
+                mStartTime.toString(),
+                Util.distanceString(mTotalDistance),
+                Util.speedString(mAverageSpeed));
+    }
+
     public JSONArray toJSON() throws JSONException {
         JSONArray JSONPath = new JSONArray();
         for (int i = 0 ; i < mPoints.size() ; i++) {
@@ -63,6 +71,9 @@ public class Path {
         JSONObject latLng = new JSONObject();
         latLng.put("latitude", location.getLatitude());
         latLng.put("longitude", location.getLongitude());
+        if (location.hasSpeed()) {
+            latLng.put("speed", location.getSpeed());
+        }
         return latLng;
     }
 
