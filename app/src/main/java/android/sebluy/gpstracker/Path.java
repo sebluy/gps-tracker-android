@@ -68,13 +68,16 @@ public class Path {
     }
 
     private static JSONObject locationToJSON(Location location) throws JSONException {
-        JSONObject latLng = new JSONObject();
-        latLng.put("latitude", location.getLatitude());
-        latLng.put("longitude", location.getLongitude());
+        JSONObject point = new JSONObject();
+        point.put("latitude", location.getLatitude());
+        point.put("longitude", location.getLongitude());
         if (location.hasSpeed()) {
-            latLng.put("speed", location.getSpeed());
+            point.put("speed", location.getSpeed());
         }
-        return latLng;
+        if (location.hasAccuracy()) {
+            point.put("accuracy", location.getAccuracy());
+        }
+        return point;
     }
 
     private void updateSpeed(Location location) {
