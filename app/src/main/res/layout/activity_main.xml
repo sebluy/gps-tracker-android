@@ -27,8 +27,15 @@
         android:layout_margin="10dp"/>
 
     <Button
-        android:text="Create New Path"
-        android:id="@+id/create_new_path_button"
+        android:text="Record Path"
+        android:id="@+id/record_path_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"/>
+
+    <Button
+        android:text="Recieve Path"
+        android:id="@+id/recieve_path_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"/>

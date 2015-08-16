@@ -1,7 +1,8 @@
 Current:
-Show path info in a readable format
+Start communicating with ralph
 
 Future:
+Increase accuracy (remove bad points)
 Run gps collection in background (while device is asleep)
 Add proper onstop/start state restoration techniques (support rotation)
 Add multiple paths

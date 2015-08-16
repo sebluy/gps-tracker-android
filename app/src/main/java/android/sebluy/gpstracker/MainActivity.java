@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements StatusListener {
 
@@ -31,7 +32,7 @@ public class MainActivity extends Activity implements StatusListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCurrentPathView = (TextView)findViewById(R.id.current_path);
-        findViewById(R.id.create_new_path_button).
+        findViewById(R.id.record_path_button).
                 setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -44,6 +45,13 @@ public class MainActivity extends Activity implements StatusListener {
                     @Override
                     public void onClick(View v) {
                         JSONAPI.addPath(PathHolder.getPath(), MainActivity.this);
+                    }
+                });
+        findViewById(R.id.recieve_path_button).
+                setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new ReceiverFragment().show(getFragmentManager(), "recieving");
                     }
                 });
     }
