@@ -39,6 +39,7 @@ public class ReceiverFragment extends DialogFragment {
     private ArrayAdapter<String> mAdapter;
     private HashMap<String, BluetoothDevice> mDevices;
     private Handler mHandler;
+    private ProgressDialog mProgressDialog;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -66,8 +67,8 @@ public class ReceiverFragment extends DialogFragment {
                             public void onClick(DialogInterface dialog, int which) {
                                 stopScan();
                                 startLoading(mAdapter.getItem(which));
-                                ProgressDialog.show(getActivity(), "Loading", "Please wait",
-                                        true, true);
+                                mProgressDialog = ProgressDialog.show(getActivity(),
+                                        "Loading", "Please wait", true, true);
                             }
                         }).
                 setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -83,18 +84,21 @@ public class ReceiverFragment extends DialogFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != Activity.RESULT_OK) {
-            getFragmentManager().beginTransaction().remove(this).commit();
+            remove();
         }
+    }
+
+    private void remove() {
+        getFragmentManager().beginTransaction().remove(this).commit();
     }
 
     private void startLoading(String deviceName) {
         BluetoothDevice device = mDevices.get(deviceName);
-        Log.d(TAG, "Connecting " + deviceName);
+        final BluetoothPathReader pathReader = new BluetoothPathReader();
         BluetoothGatt gatt = device.connectGatt(getActivity(), false, new BluetoothGattCallback() {
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 super.onConnectionStateChange(gatt, status, newState);
-                Log.d(TAG, "Connected");
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     gatt.discoverServices();
                 }
@@ -103,7 +107,6 @@ public class ReceiverFragment extends DialogFragment {
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 super.onServicesDiscovered(gatt, status);
-                Log.d(TAG, "Services discovered");
                 enableTxNotifications(gatt);
             }
 
@@ -111,9 +114,20 @@ public class ReceiverFragment extends DialogFragment {
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                 super.onCharacteristicChanged(gatt, characteristic);
                 try {
-                    Log.d(TAG, new String(characteristic.getValue(), "UTF-8"));
+                    String value = new String(characteristic.getValue(), "UTF-8");
+                    pathReader.add(value);
+                    if (pathReader.getStatus() == BluetoothPathReader.Status.FINISHED) {
+                        PathHolder.setPath(pathReader.getPath());
+                        gatt.close();
+                        mProgressDialog.dismiss();
+                    }
+                    if (pathReader.getStatus() == BluetoothPathReader.Status.ERROR) {
+                        gatt.close();
+                        mProgressDialog.dismiss();
+                    }
                 } catch (Exception e){
-                    Log.d(TAG, "Decoding failed");
+                    gatt.close();
+                    mProgressDialog.dismiss();
                 }
             }
         });
